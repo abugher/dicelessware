@@ -8,13 +8,13 @@
 
 entropy_file=/dev/urandom
 # https://www.eff.org/deeplinks/2016/07/new-wordlists-random-passphrases
-dictionary="${HOME}"/.diceware/active_list.txt
+dictionary="${HOME}"/.dicelessware/active_list.txt
 target_index_width=5
 max_word_count=100 
 
 
 function usage {
-  echo -e "Usage:\n  ${0} <0-${max_word_count}>" >&2
+  echo -e "Usage:\n  ${0} wordcount\nwordcount must be less than ${max_word_count}." >&2
   exit 1
 }
 

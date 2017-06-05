@@ -5,4 +5,4 @@ can see your dice and word list), you can use dicelessware.
 
 Usage:
 
-  dw <word count>
+  dw wordcount
