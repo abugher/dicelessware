@@ -1,0 +1,67 @@
+#!/bin/bash
+
+entropy_file=/dev/urandom
+# https://www.eff.org/deeplinks/2016/07/new-wordlists-random-passphrases
+dictionary="${HOME}"/.diceware/active_list.txt
+target_index_width=5
+max_word_count=100 
+
+if [ ${#} != 1 ]; then
+  echo "Wrong number of arguments." >&2
+  exit 1
+fi
+
+target_word_count="$(echo "${1}" | sed 's/[^0-9]//g')"
+if test '' == "${target_word_count}"; then
+  echo -e "Usage:\n  ${0} <0-${max_word_count}>" >&2
+  exit 1
+fi
+
+if [ ${max_word_count} -lt ${target_word_count} ]; then
+  echo "I don't think you want a ${target_word_count}-word pass phrase.  That seems like too much." >&2
+  exit 2
+fi
+
+
+pass_phrase=''
+word_count=0
+while [ ${word_count} -lt ${target_word_count} ]; do 
+  number=''
+  index_width=0
+  while [ ${index_width} -lt ${target_index_width} ]; do
+    # Extract a (pseudo-)random byte.
+    random_byte_decimal=$(
+      dd \
+        count=1 \
+        if=${entropy_file} \
+        bs=1 \
+        2>&- \
+      | od -t d8 \
+      | head -n 1 \
+      | awk '{print $2}'
+    )
+
+    # 252 % 6 == 0
+    # Reject values of 252 - 255.
+    if [ 251 -lt ${random_byte_decimal} ]; then
+      continue
+    fi
+
+    number+="$(( ( ${random_byte_decimal} % 6 ) + 1))"
+    let index_width++
+  done
+
+  word="$(
+    awk \
+      "/${number}/ {print \$2}" \
+      "${dictionary}"
+  ) "
+
+  # Remove the space and capitalize the word, creating camel-case.
+  word="$(echo "${word}" | sed -E 's/(.*) /\u\1/')"
+
+  pass_phrase+="${word}"
+  let word_count++
+done
+
+echo "${pass_phrase}"
