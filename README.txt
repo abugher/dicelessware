@@ -3,6 +3,6 @@ diceware, which involves physical dice and a printed word list.  If you
 do trust your computer (or you think cameras can see your dice and
 word list), you can use dicelessware.
 
-The executable name is dw.
+Usage:
 
   dw <0-100>
