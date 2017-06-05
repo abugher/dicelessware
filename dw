@@ -6,21 +6,19 @@ dictionary="${HOME}"/.diceware/active_list.txt
 target_index_width=5
 max_word_count=100 
 
-if [ ${#} != 1 ]; then
-  echo "Wrong number of arguments." >&2
-  exit 1
-fi
 
-target_word_count="$(echo "${1}" | sed 's/[^0-9]//g')"
-if test '' == "${target_word_count}"; then
+function usage {
   echo -e "Usage:\n  ${0} <0-${max_word_count}>" >&2
   exit 1
-fi
+}
 
-if [ ${max_word_count} -lt ${target_word_count} ]; then
-  echo "I don't think you want a ${target_word_count}-word pass phrase.  That seems like too much." >&2
-  exit 2
-fi
+
+[ ${#} != 1 ] && usage
+
+target_word_count="$(echo "${1}" | sed 's/[^0-9]//g')"
+test '' == "${target_word_count}" && usage
+
+test ${max_word_count} -lt ${target_word_count} && usage
 
 
 pass_phrase=''
