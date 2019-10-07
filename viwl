@@ -1,0 +1,121 @@
+#!/bin/bash
+
+tmp_file=/tmp/word_list.$( date --iso-8601=seconds ).txt
+list_file="${HOME}/.diceware/custom_list.txt"
+
+
+function main {
+  while test 'set' == "${1:+set}"; do
+    case "${1}" in
+      '-f')
+        shift
+        list_file="${1}"
+        shift
+        ;;
+      *)
+        fail "Unrecognized argument:  '${1}'"
+        ;;
+    esac
+  done
+
+  if ! cp "${list_file}" "${tmp_file}"; then
+    ret="${?}"
+    error "Failed to copy:  '${list_file}'"
+    fail "... to:  '${tmp_file}'" "${ret}"
+  fi
+
+  vim "${tmp_file}" || fail "vim returned:  '${?}'"
+
+  verify "${tmp_file}" || fail "Your changes are bad, and you should feel bad." "${?}"
+
+  cat "${tmp_file}" > "${list_file}" || fail "Failed to write list file:  '${list_file}'"
+  rm "${tmp_file}" || warn "Failed to remove tmp file:  '${tmp_file}'"
+}
+
+
+function verify {
+  tmp_file="${1}"
+  ret=0
+
+  line_count="$( wc -l < "${tmp_file}" )"
+
+  if ! grep -q '^7776$' <<< "${line_count}"; then
+    error "Wrong number of lines:  '${line_count}'"
+    ret=2
+  fi
+
+  duplicates="$(
+    sed -E 's/[0-9]{5}\s*//' "${tmp_file}" \
+    | uniq -D \
+    | grep .
+  )"
+  occurrences="$(
+    wc -l <<< "${duplicates}"
+  )"
+  duplicate_count="$(
+    uniq <<< "${duplicates}" \
+    | grep . \
+    | wc -l
+  )"
+
+  if ! test 0 == "${duplicate_count}"; then
+    error "${duplicate_count} duplicate words; ${occurrences} total occurrences" 
+    for word in ${duplicates}; do
+      error "- '${word}' ($(
+        grep "${word}" <<< "${duplicates}" | wc -l 
+      ))"
+    done
+
+    ret=3
+  fi
+
+  blank_count="$( sed -E 's/[0-9]{5}\s*//' "${tmp_file}" | grep -v . | wc -l )"
+
+  if ! test 0 == "${blank_count}"; then
+    error "Blank words detected.  (${blank_count})"
+    ret=4
+  fi
+
+  bad_line_count="$( grep -vE "^[0-9]{5}\s*." "${tmp_file}" | wc -l)"
+
+  if ! test 0 == "${bad_line_count}"; then
+    error "${bad_line_count} malformed lines."
+    ret=5
+  fi
+
+  for n in {1..6}{1..6}{1..6}{1..6}{1..6}; do
+    n_count="$( grep -c "^${n}\s." "${tmp_file}" )"
+    if ! test 1 == "${n_count}"; then
+      error "Index ${n} occurs ${n_count} times."
+      ret=6
+    fi
+  done
+
+  return "${ret}"
+}
+
+
+function output {
+  printf '%s\n' "${short_invocation}:  ${1}"
+}
+
+
+function error {
+  output "ERROR:  ${1}"
+}
+
+
+function warn {
+  output "WARNING:  ${1}"
+}
+
+
+function fail {
+  error "${1}"
+  exit "${2:-1}"
+}
+
+
+short_invocation="$( sed 's/[^/]*\///g' <<< "${0}" )"
+
+main "${@}"
