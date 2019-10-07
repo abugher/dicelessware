@@ -24,9 +24,17 @@ function main {
     fail "... to:  '${tmp_file}'" "${ret}"
   fi
 
-  "${VISUAL:-${EDITOR:-vi}}" "${tmp_file}" || fail "${EDITOR} returned:  '${?}'"
+  
 
-  verify "${tmp_file}" || fail "Your changes are bad, and you should feel bad." "${?}"
+  while
+    "${VISUAL:-${EDITOR:-vi}}" "${tmp_file}" || fail "${EDITOR} returned:  '${?}'"
+    ! verify "${tmp_file}"
+  do
+    ask "Try again?  [Yn]" response
+    if grep -iq '^n' <<< "${response}"; then
+      fail "Giving up."
+    fi
+  done
 
   cat "${tmp_file}" > "${list_file}" || fail "Failed to write list file:  '${list_file}'"
   rm "${tmp_file}" || warn "Failed to remove tmp file:  '${tmp_file}'"
@@ -110,6 +118,11 @@ function verify {
 
 function output {
   printf '%s\n' "${short_invocation}:  ${1}"
+}
+
+
+function ask {
+  read -p "$( output "${1}" ) " "${2}"
 }
 
 
