@@ -83,11 +83,24 @@ function verify {
     ret=5
   fi
 
-  for n in {1..6}{1..6}{1..6}{1..6}{1..6}; do
-    n_count="$( grep -c "^${n}\s." "${tmp_file}" )"
-    if ! test 1 == "${n_count}"; then
-      error "Index ${n} occurs ${n_count} times."
+  right_numbers=()
+  for number in {1..6}{1..6}{1..6}{1..6}{1..6}; do
+    right_numbers+=( "${number}" )
+  done
+
+  recorded_numbers=()
+  while read number; do
+    recorded_numbers+=( "${number}" )
+  done <<< "$(
+    awk '{print $1}' "${tmp_file}" \
+    | sort
+  )"
+
+  for i in {0..7775}; do
+    if ! test "${recorded_numbers[i]}" == "${right_numbers[i]}"; then
+      error "Missing index:  ${right_numbers[i]}"
       ret=6
+      break
     fi
   done
 
