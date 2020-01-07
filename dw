@@ -9,7 +9,7 @@
 entropy_file=/dev/urandom
 # https://www.eff.org/deeplinks/2016/07/new-wordlists-random-passphrases
 dictionary="${HOME}"/.dicelessware/active_list.txt
-target_index_width=4
+target_index_width=$(( $(head -n 1 $dictionary | awk '{print$1}' | wc -c) - 1 ))
 max_word_count=100 
 
 
@@ -20,6 +20,17 @@ function usage {
 
 
 [ ${#} != 1 ] && usage
+case "${target_index_width}" in
+  4)
+    true
+    ;;
+  5)
+    true
+    ;;
+  *)
+    usage
+    ;;
+esac
 
 target_word_count="$(echo "${1}" | sed 's/[^0-9]//g')"
 test '' == "${target_word_count}" && usage
