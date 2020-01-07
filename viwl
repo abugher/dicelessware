@@ -1,6 +1,6 @@
 #!/bin/bash
 
-tmp_file=/tmp/word_list.$( date --iso-8601=seconds ).txt
+tmp_file="${HOME}/.dicelessware/tmp/word_list.$( date --iso-8601=seconds ).txt"
 list_file="${HOME}/.dicelessware/custom_list.txt"
 
 
@@ -47,7 +47,7 @@ function verify {
 
   line_count="$( wc -l < "${tmp_file}" )"
 
-  if ! grep -q '^7776$' <<< "${line_count}"; then
+  if ! grep -qE '^7776$|^1296$' <<< "${line_count}"; then
     error "Wrong number of lines:  '${line_count}'"
     ret=2
   fi
@@ -84,16 +84,20 @@ function verify {
     ret=4
   fi
 
-  bad_line_count="$( grep -vE "^[0-9]{5}\s*." "${tmp_file}" | wc -l)"
+  bad_line_count="$( grep -vE "^[0-9]{4,5}\s*." "${tmp_file}" | wc -l)"
 
   if ! test 0 == "${bad_line_count}"; then
     error "${bad_line_count} malformed lines."
     ret=5
   fi
 
-  right_numbers=()
+  right_numbers_5d6=()
   for number in {1..6}{1..6}{1..6}{1..6}{1..6}; do
-    right_numbers+=( "${number}" )
+    right_numbers_5d6+=( "${number}" )
+  done
+  right_numbers_4d6=()
+  for number in {1..6}{1..6}{1..6}{1..6}; do
+    right_numbers_4d6+=( "${number}" )
   done
 
   recorded_numbers=()
@@ -104,9 +108,12 @@ function verify {
     | sort
   )"
 
-  for i in {0..7775}; do
-    if ! test "${recorded_numbers[i]}" == "${right_numbers[i]}"; then
-      error "Missing index:  ${right_numbers[i]}"
+  for (( i=0; i < ${#recorded_numbers[@]}; i++ )); do
+    if 
+      ! test "${recorded_numbers[i]}" == "${right_numbers_5d6[i]}" \
+      && ! test "${recorded_numbers[i]}" == "${right_numbers_4d6[i]}"
+    then
+      error "Missing index:  ${right_numbers_5d6[i]} (found: ${recorded_numbers[i]})"
       ret=6
       break
     fi
