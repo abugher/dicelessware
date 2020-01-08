@@ -26,18 +26,23 @@ function main {
 
   
 
+  if ! verify "${tmp_file}"; then
+    fail "Word list contains errors."
+  fi
   while
     "${VISUAL:-${EDITOR:-vi}}" "${tmp_file}" || fail "${EDITOR} returned:  '${?}'"
     ! verify "${tmp_file}"
   do
-    ask "Try again?  [Yn]" response
+    ask "Refusing to save.  Continue editing?  [Yn]" response
     if grep -iq '^n' <<< "${response}"; then
-      fail "Giving up."
+      fail "New word list contains errors.  (Not saved.)"
     fi
   done
 
   cat "${tmp_file}" > "${list_file}" || fail "Failed to write list file:  '${list_file}'"
   rm "${tmp_file}" || warn "Failed to remove tmp file:  '${tmp_file}'"
+
+  echo "Don't forget to commit and/or sync your changes."
 }
 
 
