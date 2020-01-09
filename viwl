@@ -1,5 +1,6 @@
 #!/bin/bash
 
+git_dir="${HOME}/code/dictionaries"
 work_dir="${HOME}/.dicelessware"
 tmp_file="${work_dir}/word_list.tmp.$( date --iso-8601=seconds ).txt"
 list_file="${work_dir}/custom_list.txt"
@@ -25,8 +26,6 @@ function main {
     fail "... to:  '${tmp_file}'" "${ret}"
   fi
 
-  
-
   if ! verify "${tmp_file}"; then
     fail "Word list contains errors."
   fi
@@ -43,7 +42,11 @@ function main {
   cat "${tmp_file}" > "${list_file}" || fail "Failed to write list file:  '${list_file}'"
   rm "${tmp_file}" || warn "Failed to remove tmp file:  '${tmp_file}'"
 
-  echo "Don't forget to commit and/or sync your changes."
+  if type g > /dev/null; then
+    cd "${git_dir}" && git diff && g
+  else
+    echo "Don't forget to commit and/or sync your changes."
+  fi
 }
 
 
