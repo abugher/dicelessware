@@ -59,7 +59,7 @@ function verify {
   fi
 
   duplicates="$(
-    sed -E 's/[0-9]{5}\s*//' "${tmp_file}" \
+    sed -E 's/[0-9]{4,5}\s*//' "${tmp_file}" \
     | uniq -D \
     | grep .
   )"
@@ -83,7 +83,7 @@ function verify {
     ret=3
   fi
 
-  blank_count="$( sed -E 's/[0-9]{5}\s*//' "${tmp_file}" | grep -v . | wc -l )"
+  blank_count="$( sed -E 's/[0-9]{4,5}\s*//' "${tmp_file}" | grep -v . | wc -l )"
 
   if ! test 0 == "${blank_count}"; then
     error "Blank words detected.  (${blank_count})"
