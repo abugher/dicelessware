@@ -1,0 +1,7 @@
+3,4c3,5
+< tmp_file="${HOME}/.dicelessware/tmp/word_list.$( date --iso-8601=seconds ).txt"
+< list_file="${HOME}/.dicelessware/custom_list.txt"
+---
+> work_dir="${HOME}/.dicelessware"
+> tmp_file="${tmp_dir}/word_list.tmp.$( date --iso-8601=seconds ).txt"
+> list_file="${work_dir}/custom_list.txt"
