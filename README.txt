@@ -17,3 +17,7 @@ Usage:
   viwl [-f <file>]
 
     Edit the default custom word list, or the specified file.
+
+  pin <charcount>
+
+    Generate a PIN with charcount digits.
